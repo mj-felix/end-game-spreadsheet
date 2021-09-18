@@ -4,4 +4,4 @@ const controller = new Controller(spreadsheet);
 
 const painter = new Painter(spreadsheet);
 
-painter.paint('spreadsheet');
+painter.init();

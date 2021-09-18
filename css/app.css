@@ -18,14 +18,14 @@ th {
     padding: 0 5px;
 }
 
-input {
+input.cell {
   border: none;
   width: 50px;
   padding: 0 5px;
   height: 25px;
 }
 
-input:focus {
+input.cell:focus {
     outline: none;
     background-color: lightyellow;
 }

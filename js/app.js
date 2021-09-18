@@ -84,9 +84,19 @@ class Painter {
         this.spreadsheet = spreadsheet;
     }
 
-    paint(targetElementId) {
-        document.getElementById(targetElementId).innerHTML = '...';
-        console.log('painter paints');
+    init() {
+        this.paint();
+        this.listenToRefreshClickEventAndRepaint();
+    }
+
+    listenToRefreshClickEventAndRepaint() {
+        document.querySelector('#refreshButton').addEventListener('click', (event) => {
+            this.paint();
+        });
+    }
+
+    paint() {
+        console.log('Painter paints ...');
         const data = this.spreadsheet.getData();
         const keys = Object.keys(data);
         const numOfColumns = keys.length;
@@ -101,7 +111,7 @@ class Painter {
                 const cellValue = cell.getValue() || '';
                 const isTableHeader = (i === 0) || (j === 0);
                 if (!isTableHeader) {
-                    html.push(`<td><input id='${cellId}' type='text' value='${cellValue}'></td>`);
+                    html.push(`<td><input id='${cellId}' class='cell' type='text' value='${cellValue}'></td>`);
                 }
                 else {
                     html.push(`<th>${cellValue}</th>`);
@@ -111,7 +121,7 @@ class Painter {
         }
         html.push('</table>');
 
-        document.getElementById(targetElementId).innerHTML = html.join('');
+        document.getElementById('spreadsheet').innerHTML = html.join('');
 
         this.listen();
     }
@@ -121,7 +131,7 @@ class Painter {
     }
 
     listenToInputEventsAndSaveCells() {
-        const cells = document.querySelectorAll('input');
+        const cells = document.querySelectorAll('input.cell');
         for (let cell of cells) {
             cell.addEventListener('input', (event) => {
                 console.log(event.target.id, event.target.value);

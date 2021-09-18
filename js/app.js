@@ -24,6 +24,7 @@ class Cell {
         this.value = value;
         this.formula = formula;
         this.impactedCells = [];
+        this.reliantOnCellIds = [];
         this.isBold = false;
         this.isItalic = false;
         this.isUnderlined = false;
@@ -81,10 +82,10 @@ class Cell {
     }
 
     updateValueFromFormula() {
-        console.log('updateValueFromFormula');
+
         let operation = this.formula.slice(1);
         const cellIds = operation.split(/[+\-*/()]/);
-        console.log(cellIds);
+
         const newCellIds = [];
         const values = [];
         for (let cellId of cellIds) {
@@ -95,6 +96,7 @@ class Cell {
                 continue;
             }
             newCellIds.push(cellId);
+
             const cellValue = cell.getValue();
             values.push(cellValue);
             if (!cell.impactedCells.filter((impactedCell) => impactedCell.getId() === this.getId()).length) {
@@ -105,14 +107,14 @@ class Cell {
         for (let i = 0; i < newCellIds.length; i++) {
             operation = operation.replaceAll(newCellIds[i], values[i]);
         }
-        console.log(operation);
+
         try {
             this.value = calculate(operation);
+            this.reliantOnCellIds = newCellIds;
         } catch (e) {
             this.value = '\'' + this.formula;
         }
     }
-
 }
 
 class Spreadsheet {
@@ -214,7 +216,7 @@ class Painter {
     }
 
     paint() {
-        console.log('Painter paints ...');
+
         const data = this.spreadsheet.getData();
         const keys = Object.keys(data);
         const numOfColumns = keys.length;
@@ -249,7 +251,6 @@ class Painter {
         const cells = document.querySelectorAll('input.cell');
         for (let cell of cells) {
             cell.addEventListener('input', (event) => {
-                console.log(event.target.id, event.target.value);
                 controller.saveCell(event.target.id, event.target.value);
             });
             cell.addEventListener('focus', (event) => {
@@ -276,7 +277,6 @@ class Painter {
         let row = cellId.slice(index);
 
         const numOfRows = this.spreadsheet.getData()['0'].length;
-        console.log(column, row, numOfRows - 1);
         if (row >= numOfRows - 1) {
             row = 1;
             const keys = Object.keys(this.spreadsheet.getData());
@@ -338,7 +338,6 @@ class Controller {
     toggleBold(cellId) {
         const cell = this.spreadsheet.getCellById(cellId);
         const isBold = cell.toggleIsBold();
-        console.log(isBold);
         painter.setBold(cellId, isBold);
     }
 
@@ -360,13 +359,20 @@ class Controller {
             cell.setFormula(value);
             if (isBlurEvent) {
                 cell.updateValueFromFormula();
-                painter.updateInput(cellId, cell.getValue());
+                painter.updateInput(cellId, cell.getValue() || '\'' + cell.getFormula());
 
             }
         } else {
             cell.setValue(value);
             cell.setFormula(null);
+            for (let reliantOnCellId of cell.reliantOnCellIds) {
+                const cell = spreadsheet.getCellById(reliantOnCellId);
+                cell.impactedCells = cell.impactedCells.filter((cell) => cell.getId() !== cellId);
+            }
+            cell.reliantOnCellIds = [];
         }
+
+        // update other cells that relies on this cell
         if (isBlurEvent) {
             this.updateImpactedCells(cell);
         }
@@ -375,11 +381,10 @@ class Controller {
 
     updateImpactedCells(cell) {
         for (let impactedCell of cell.impactedCells) {
-            if (!impactedCell.formula) {
-                cell.impactedCells = cell.impactedCells.filter((cell) => cell.getId() !== impactedCell.getId());
-                continue;
-            }
-            console.log(impactedCell);
+            // if (!impactedCell.formula) {
+            //     // cell.impactedCells = cell.impactedCells.filter((cell) => cell.getId() !== impactedCell.getId());
+            //     continue;
+            // }
             impactedCell.updateValueFromFormula();
             painter.updateInput(impactedCell.getId(), impactedCell.getValue());
             if (impactedCell.impactedCells && impactedCell.impactedCells.length) {

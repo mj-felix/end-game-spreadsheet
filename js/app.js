@@ -24,6 +24,7 @@ class Cell {
         this.value = value;
         this.formula = formula;
         this.impactedCells = [];
+        this.isBold = false;
     }
 
     getId() {
@@ -44,6 +45,15 @@ class Cell {
 
     setFormula(formula) {
         this.formula = formula && formula.toUpperCase();
+    }
+
+    getIsBold() {
+        return this.isBold;
+    }
+
+    toggleIsBold() {
+        this.isBold = !this.isBold;
+        return this.isBold;
     }
 
     addImpactedCell(otherCell) {
@@ -128,16 +138,36 @@ class Spreadsheet {
 class Painter {
     constructor(spreadsheet) {
         this.spreadsheet = spreadsheet;
+        this.activeCellId = null;
+    }
+
+    getActiveCellId() {
+        return this.activeCellId;
+    }
+
+    setActiveCellId(cellId) {
+        this.activeCellId = cellId;
     }
 
     init() {
         this.paint();
         this.listenToRefreshClickEventAndRepaint();
+        this.listenToBoldClickEventAndUpdate();
     }
 
     listenToRefreshClickEventAndRepaint() {
         document.querySelector('#refreshButton').addEventListener('click', (event) => {
             this.paint();
+        });
+    }
+
+    listenToBoldClickEventAndUpdate() {
+        document.querySelector('#boldButton').addEventListener('click', (event) => {
+            const activeCellId = this.getActiveCellId();
+            if (activeCellId) {
+                controller.toggleBold(activeCellId);
+                document.getElementById(activeCellId).focus();
+            }
         });
     }
 
@@ -157,7 +187,7 @@ class Painter {
                 const cellValue = cell.getValue() || '';
                 const isTableHeader = (i === 0) || (j === 0);
                 if (!isTableHeader) {
-                    html.push(`<td><input id='${cellId}' class='cell' type='text' value='${cellValue}'></td>`);
+                    html.push(`<td><input id='${cellId}' class='cell${cell.getIsBold() ? ' strong' : ''}' type='text' value='${cellValue}'></td>`);
                 }
                 else {
                     html.push(`<th>${cellValue}</th>`);
@@ -182,42 +212,55 @@ class Painter {
             });
             cell.addEventListener('focus', (event) => {
                 controller.checkForFormula(event.target.id);
+                painter.setActiveCellId(event.target.id);
             });
             cell.addEventListener('blur', (event) => {
                 controller.saveCell(event.target.id, event.target.value, true);
             });
             cell.addEventListener('keyup', (event) => {
-                painter.moveCursorToCellBelow(event);
+                if (event.keyCode === 13) {
+                    painter.moveCursorToCellBelow(event);
+                }
             });
         }
+
     }
 
     moveCursorToCellBelow(event) {
-        if (event.keyCode === 13) {
-            const cellId = event.target.id;
-            const index = cellId.search(/\d/);
-            let column = cellId.slice(0, index);
-            let row = cellId.slice(index);
 
-            const numOfRows = this.spreadsheet.getData()['0'].length;
-            console.log(column, row, numOfRows - 1);
-            if (row >= numOfRows - 1) {
-                row = 1;
-                const keys = Object.keys(this.spreadsheet.getData());
-                let nextKey;
-                for (let i = 1; i < keys.length; i++) {
-                    if (keys[i] === column) {
-                        nextKey = keys[i + 1];
-                        break;
-                    }
+        const cellId = event.target.id;
+        const index = cellId.search(/\d/);
+        let column = cellId.slice(0, index);
+        let row = cellId.slice(index);
+
+        const numOfRows = this.spreadsheet.getData()['0'].length;
+        console.log(column, row, numOfRows - 1);
+        if (row >= numOfRows - 1) {
+            row = 1;
+            const keys = Object.keys(this.spreadsheet.getData());
+            let nextKey;
+            for (let i = 1; i < keys.length; i++) {
+                if (keys[i] === column) {
+                    nextKey = keys[i + 1];
+                    break;
                 }
-                column = nextKey;
-            } else {
-                row = parseInt(row, 10) + 1;
             }
-            try {
-                document.getElementById(column + row).focus();
-            } catch (e) { }
+            column = nextKey;
+        } else {
+            row = parseInt(row, 10) + 1;
+        }
+        try {
+            document.getElementById(column + row).focus();
+        } catch (e) { }
+
+    }
+
+    setBold(cellId, isBold) {
+        const inputClassList = document.getElementById(cellId).classList;
+        if (isBold) {
+            inputClassList.add('strong');
+        } else {
+            inputClassList.remove('strong');
         }
     }
 
@@ -232,6 +275,13 @@ class Controller {
         this.spreadsheet = spreadsheet;
     }
 
+    toggleBold(cellId) {
+        const cell = this.spreadsheet.getCellById(cellId);
+        const isBold = cell.toggleIsBold();
+        console.log(isBold);
+        painter.setBold(cellId, isBold);
+    }
+
     saveCell(cellId, value, isBlurEvent) {
         const cell = this.spreadsheet.getCellById(cellId);
         if (value.startsWith('=')) {
@@ -239,7 +289,7 @@ class Controller {
             if (isBlurEvent) {
                 cell.updateValueFromFormula();
                 painter.updateInput(cellId, cell.getValue());
-                // this.updateImpactedCells(cell);
+
             }
         } else {
             cell.setValue(value);

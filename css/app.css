@@ -20,7 +20,7 @@ th {
 
 input.cell {
   border: none;
-  width: 80px;
+  width: 70px;
   padding: 0 5px;
   height: 25px;
 }
@@ -28,4 +28,13 @@ input.cell {
 input.cell:focus {
     outline: none;
     background-color: lightyellow;
+}
+
+input.bold {
+    height: 25px;
+    width: 25px;
+}
+
+.strong {
+    font-weight: bold;
 }

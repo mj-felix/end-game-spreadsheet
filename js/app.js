@@ -252,7 +252,8 @@ class Painter {
 
     listenToRefreshClickEventAndRepaint() {
         document.querySelector('#refreshButton').addEventListener('click', (event) => {
-            this.paint();
+            document.getElementById('spreadsheet').innerHTML = 'Refreshing ...';
+            setTimeout(() => this.paint(), 1000);
         });
     }
 

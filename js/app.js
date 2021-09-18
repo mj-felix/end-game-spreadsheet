@@ -25,6 +25,8 @@ class Cell {
         this.formula = formula;
         this.impactedCells = [];
         this.isBold = false;
+        this.isItalic = false;
+        this.isUnderlined = false;
     }
 
     getId() {
@@ -54,6 +56,24 @@ class Cell {
     toggleIsBold() {
         this.isBold = !this.isBold;
         return this.isBold;
+    }
+
+    getIsItalic() {
+        return this.isItalic;
+    }
+
+    toggleIsItalic() {
+        this.isItalic = !this.isItalic;
+        return this.isItalic;
+    }
+
+    getIsUnderlined() {
+        return this.isUnderlined;
+    }
+
+    toggleIsUnderlined() {
+        this.isUnderlined = !this.isUnderlined;
+        return this.isUnderlined;
     }
 
     addImpactedCell(otherCell) {
@@ -153,6 +173,8 @@ class Painter {
         this.paint();
         this.listenToRefreshClickEventAndRepaint();
         this.listenToBoldClickEventAndUpdate();
+        this.listenToItalicClickEventAndUpdate();
+        this.listenToUnderlineClickEventAndUpdate();
     }
 
     listenToRefreshClickEventAndRepaint() {
@@ -166,6 +188,26 @@ class Painter {
             const activeCellId = this.getActiveCellId();
             if (activeCellId) {
                 controller.toggleBold(activeCellId);
+                document.getElementById(activeCellId).focus();
+            }
+        });
+    }
+
+    listenToItalicClickEventAndUpdate() {
+        document.querySelector('#italicsButton').addEventListener('click', (event) => {
+            const activeCellId = this.getActiveCellId();
+            if (activeCellId) {
+                controller.toggleItalic(activeCellId);
+                document.getElementById(activeCellId).focus();
+            }
+        });
+    }
+
+    listenToUnderlineClickEventAndUpdate() {
+        document.querySelector('#underlineButton').addEventListener('click', (event) => {
+            const activeCellId = this.getActiveCellId();
+            if (activeCellId) {
+                controller.toggleUnderlined(activeCellId);
                 document.getElementById(activeCellId).focus();
             }
         });
@@ -187,7 +229,7 @@ class Painter {
                 const cellValue = cell.getValue() || '';
                 const isTableHeader = (i === 0) || (j === 0);
                 if (!isTableHeader) {
-                    html.push(`<td><input id='${cellId}' class='cell${cell.getIsBold() ? ' strong' : ''}' type='text' value='${cellValue}'></td>`);
+                    html.push(`<td><input id='${cellId}' class='cell${cell.getIsBold() ? ' strong' : ''}${cell.getIsItalic() ? ' italic' : ''}${cell.getIsUnderlined() ? ' underlined' : ''}' type='text' value='${cellValue}'></td>`);
                 }
                 else {
                     html.push(`<th>${cellValue}</th>`);
@@ -264,6 +306,24 @@ class Painter {
         }
     }
 
+    setItalic(cellId, isItalic) {
+        const inputClassList = document.getElementById(cellId).classList;
+        if (isItalic) {
+            inputClassList.add('italic');
+        } else {
+            inputClassList.remove('italic');
+        }
+    }
+
+    setUnderlined(cellId, isUnderlined) {
+        const inputClassList = document.getElementById(cellId).classList;
+        if (isUnderlined) {
+            inputClassList.add('underlined');
+        } else {
+            inputClassList.remove('underlined');
+        }
+    }
+
     updateInput(cellId, newInputValue) {
         document.getElementById(cellId).value = newInputValue;
     }
@@ -280,6 +340,18 @@ class Controller {
         const isBold = cell.toggleIsBold();
         console.log(isBold);
         painter.setBold(cellId, isBold);
+    }
+
+    toggleItalic(cellId) {
+        const cell = this.spreadsheet.getCellById(cellId);
+        const isItalic = cell.toggleIsItalic();
+        painter.setItalic(cellId, isItalic);
+    }
+
+    toggleUnderlined(cellId) {
+        const cell = this.spreadsheet.getCellById(cellId);
+        const isUnderlined = cell.toggleIsUnderlined();
+        painter.setUnderlined(cellId, isUnderlined);
     }
 
     saveCell(cellId, value, isBlurEvent) {

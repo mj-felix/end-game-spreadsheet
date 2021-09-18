@@ -38,3 +38,23 @@ input.bold {
 .strong {
     font-weight: bold;
 }
+
+.italic {
+    font-style: italic;
+}
+
+.underlined {
+    text-decoration: underline;
+}
+
+#boldButton {
+    font-weight: bold;
+}
+
+#italicsButton {
+    font-style: italic;
+}
+
+#underlineButton {
+    text-decoration: underline;
+}

@@ -186,6 +186,38 @@ class Painter {
             cell.addEventListener('blur', (event) => {
                 controller.saveCell(event.target.id, event.target.value, true);
             });
+            cell.addEventListener('keyup', (event) => {
+                painter.moveCursorToCellBelow(event);
+            });
+        }
+    }
+
+    moveCursorToCellBelow(event) {
+        if (event.keyCode === 13) {
+            const cellId = event.target.id;
+            const index = cellId.search(/\d/);
+            let column = cellId.slice(0, index);
+            let row = cellId.slice(index);
+
+            const numOfRows = this.spreadsheet.getData()['0'].length;
+            console.log(column, row, numOfRows - 1);
+            if (row >= numOfRows - 1) {
+                row = 1;
+                const keys = Object.keys(this.spreadsheet.getData());
+                let nextKey;
+                for (let i = 1; i < keys.length; i++) {
+                    if (keys[i] === column) {
+                        nextKey = keys[i + 1];
+                        break;
+                    }
+                }
+                column = nextKey;
+            } else {
+                row = parseInt(row, 10) + 1;
+            }
+            try {
+                document.getElementById(column + row).focus();
+            } catch (e) { }
         }
     }
 

@@ -24,3 +24,8 @@ input {
   padding: 0 5px;
   height: 25px;
 }
+
+input:focus {
+    outline: none;
+    background-color: lightyellow;
+}

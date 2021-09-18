@@ -85,6 +85,8 @@ class Painter {
     }
 
     paint(targetElementId) {
+        document.getElementById(targetElementId).innerHTML = '...';
+        console.log('painter paints');
         const data = this.spreadsheet.getData();
         const keys = Object.keys(data);
         const numOfColumns = keys.length;
@@ -110,6 +112,34 @@ class Painter {
         html.push('</table>');
 
         document.getElementById(targetElementId).innerHTML = html.join('');
+
+        this.listen();
+    }
+
+    listen() {
+        this.listenToInputEventsAndSaveCells();
+    }
+
+    listenToInputEventsAndSaveCells() {
+        const cells = document.querySelectorAll('input');
+        for (let cell of cells) {
+            cell.addEventListener('input', (event) => {
+                console.log(event.target.id, event.target.value);
+                controller.saveCell(event.target.id, event.target.value);
+            });
+        }
+    }
+
+}
+
+class Controller {
+    constructor(spreadsheet) {
+        this.spreadsheet = spreadsheet;
+    }
+
+    saveCell(cellId, value) {
+        const cell = this.spreadsheet.getCellById(cellId);
+        cell.setValue(value);
     }
 
 }

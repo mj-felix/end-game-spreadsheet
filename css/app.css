@@ -1,0 +1,26 @@
+body{
+    font-family: sans-serif;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    border: 1px solid lightgray;
+    padding: 0;
+}
+
+th {
+    background-color: gray;
+    color: white;
+    border: 1px solid lightgray;
+    padding: 0 5px;
+}
+
+input {
+  border: none;
+  width: 50px;
+  padding: 0 5px;
+  height: 25px;
+}

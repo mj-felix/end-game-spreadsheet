@@ -81,8 +81,67 @@ class Cell {
         this.impactedCells.push(otherCell);
     }
 
-    updateValueFromFormula() {
+    updateValueFromSumFormula() {
+        let marginalCells = this.formula.slice(5);
+        marginalCells = marginalCells.substring(0, marginalCells.length - 1);
+        marginalCells = marginalCells.split(':');
+        console.log(marginalCells);
+        const index1 = marginalCells[0].search(/\d/);
+        const column1 = marginalCells[0].slice(0, index1);
+        const row1 = marginalCells[0].slice(index1);
+        const index2 = marginalCells[1].search(/\d/);
+        const column2 = marginalCells[1].slice(0, index2);
+        const row2 = marginalCells[1].slice(index2);
+        let firstRow, lastRow;
+        if (parseInt(row1) < parseInt(row2)) {
+            firstRow = row1;
+            lastRow = row2;
+        } else {
+            firstRow = row2;
+            lastRow = row1;
+        }
+        console.log(firstRow, lastRow);
+        const spreadsheetColumns = spreadsheet.getColumns();
 
+        const column1Index = spreadsheetColumns.findIndex((column) => column === column1);
+        const column2Index = spreadsheetColumns.findIndex((column) => column === column2);
+        let firstColumnIndex, lastColumnIndex;
+        if (column1Index < column2Index) {
+            firstColumnIndex = column1Index;
+            lastColumnIndex = column2Index;
+        } else {
+            firstColumnIndex = column2Index;
+            lastColumnIndex = column1Index;
+        }
+        console.log(firstColumnIndex, lastColumnIndex);
+
+        const newCellIds = [];
+        let result = 0;
+
+        try {
+
+            for (let i = firstColumnIndex; i <= lastColumnIndex; i++) {
+                for (let j = firstRow; j <= lastRow; j++) {
+                    const newCellId = spreadsheetColumns[i] + j;
+                    let cell = spreadsheet.getCellById(newCellId);
+
+                    newCellIds.push(newCellId);
+                    result += parseFloat(cell.getValue() || 0);
+                    if (!cell.impactedCells.filter((impactedCell) => impactedCell.getId() === this.getId()).length) {
+                        cell.addImpactedCell(this);
+                    }
+
+                }
+            }
+
+            this.value = Number.isNaN(result) ? '\'' + this.formula : result;
+            this.reliantOnCellIds = newCellIds;
+        } catch (e) {
+            this.value = '\'' + this.formula;
+        }
+    }
+
+    updateValueFromRegularFormula() {
         let operation = this.formula.slice(1);
         const cellIds = operation.split(/[+\-*/()]/);
 
@@ -113,6 +172,14 @@ class Cell {
             this.reliantOnCellIds = newCellIds;
         } catch (e) {
             this.value = '\'' + this.formula;
+        }
+    }
+
+    updateValueFromFormula() {
+        if (this.formula.startsWith('=SUM')) {
+            this.updateValueFromSumFormula();
+        } else {
+            this.updateValueFromRegularFormula();
         }
     }
 }
@@ -153,6 +220,10 @@ class Spreadsheet {
         const column = columnRow.slice(0, index);
         const row = columnRow.slice(index);
         return this.getCell(column, row);
+    }
+
+    getColumns() {
+        return Object.keys(this.data);
     }
 
 }

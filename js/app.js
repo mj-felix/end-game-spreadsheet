@@ -13,12 +13,17 @@ const numberToExcelHeader = (index) => {
     return chars[index % 26];
 };
 
+function calculate(operation) {
+    return Function(`'use strict'; return (${operation})`)();
+}
+
 class Cell {
     constructor(id, type = 'input', value = null, formula = null) {
         this.id = id;
         this.type = type;
         this.value = value;
         this.formula = formula;
+        this.impactedCells = [];
     }
 
     getId() {
@@ -33,8 +38,49 @@ class Cell {
         this.value = value;
     }
 
+    getFormula() {
+        return this.formula;
+    }
+
     setFormula(formula) {
-        this.formula = formula;
+        this.formula = formula && formula.toUpperCase();
+    }
+
+    addImpactedCell(otherCell) {
+        this.impactedCells.push(otherCell);
+    }
+
+    updateValueFromFormula() {
+        console.log('updateValueFromFormula');
+        let operation = this.formula.slice(1);
+        const cellIds = operation.split(/[+\-*/()]/);
+        console.log(cellIds);
+        const newCellIds = [];
+        const values = [];
+        for (let cellId of cellIds) {
+            let cell;
+            try {
+                cell = spreadsheet.getCellById(cellId);
+            } catch (e) {
+                continue;
+            }
+            newCellIds.push(cellId);
+            const cellValue = cell.getValue();
+            values.push(cellValue);
+            if (!cell.impactedCells.filter((impactedCell) => impactedCell.getId() === this.getId()).length) {
+                cell.addImpactedCell(this);
+            }
+        }
+
+        for (let i = 0; i < newCellIds.length; i++) {
+            operation = operation.replaceAll(newCellIds[i], values[i]);
+        }
+        console.log(operation);
+        try {
+            this.value = calculate(operation);
+        } catch (e) {
+            this.value = '\'' + this.formula;
+        }
     }
 
 }
@@ -127,17 +173,24 @@ class Painter {
     }
 
     listen() {
-        this.listenToInputEventsAndSaveCells();
-    }
 
-    listenToInputEventsAndSaveCells() {
         const cells = document.querySelectorAll('input.cell');
         for (let cell of cells) {
             cell.addEventListener('input', (event) => {
                 console.log(event.target.id, event.target.value);
                 controller.saveCell(event.target.id, event.target.value);
             });
+            cell.addEventListener('focus', (event) => {
+                controller.checkForFormula(event.target.id);
+            });
+            cell.addEventListener('blur', (event) => {
+                controller.saveCell(event.target.id, event.target.value, true);
+            });
         }
+    }
+
+    updateInput(cellId, newInputValue) {
+        document.getElementById(cellId).value = newInputValue;
     }
 
 }
@@ -147,9 +200,47 @@ class Controller {
         this.spreadsheet = spreadsheet;
     }
 
-    saveCell(cellId, value) {
+    saveCell(cellId, value, isBlurEvent) {
         const cell = this.spreadsheet.getCellById(cellId);
-        cell.setValue(value);
+        if (value.startsWith('=')) {
+            cell.setFormula(value);
+            if (isBlurEvent) {
+                cell.updateValueFromFormula();
+                painter.updateInput(cellId, cell.getValue());
+                // this.updateImpactedCells(cell);
+            }
+        } else {
+            cell.setValue(value);
+            cell.setFormula(null);
+        }
+        if (isBlurEvent) {
+            this.updateImpactedCells(cell);
+        }
+
     }
+
+    updateImpactedCells(cell) {
+        for (let impactedCell of cell.impactedCells) {
+            if (!impactedCell.formula) {
+                cell.impactedCells = cell.impactedCells.filter((cell) => cell.getId() !== impactedCell.getId());
+                continue;
+            }
+            console.log(impactedCell);
+            impactedCell.updateValueFromFormula();
+            painter.updateInput(impactedCell.getId(), impactedCell.getValue());
+            if (impactedCell.impactedCells && impactedCell.impactedCells.length) {
+                this.updateImpactedCells(impactedCell);
+            }
+        }
+    }
+
+    checkForFormula(cellId) {
+        const cell = this.spreadsheet.getCellById(cellId);
+        const cellFormula = cell.getFormula();
+        if (cellFormula) {
+            painter.updateInput(cellId, cellFormula);
+        }
+    }
+
 
 }

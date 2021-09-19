@@ -257,6 +257,7 @@ class Painter {
         this.addBoldListener();
         this.addItalicListener();
         this.addUnderlineListener();
+        this.addSetInactiveCellListener();
     }
 
     addRefreshListener() {
@@ -292,6 +293,18 @@ class Painter {
             if (activeCellId) {
                 controller.toggleUnderlined(activeCellId);
                 document.getElementById(activeCellId).focus();
+            }
+        });
+    }
+
+    addSetInactiveCellListener() {
+        document.body.addEventListener('click', (event) => {
+            if (!event.target.classList.contains('cell')
+                && event.target !== document.getElementById('boldButton')
+                && event.target !== document.getElementById('italicButton')
+                && event.target !== document.getElementById('underlineButton')
+            ) {
+                this.setActiveCellId(null);
             }
         });
     }
@@ -335,14 +348,14 @@ class Painter {
                 controller.saveCell(event.target.id, event.target.value);
             });
             cell.addEventListener('focus', (event) => {
-                controller.checkForFormula(event.target.id);
+                controller.checkForFormula(event.target.id, event);
             });
             cell.addEventListener('blur', (event) => {
                 controller.saveCell(event.target.id, event.target.value, true);
             });
             cell.addEventListener('keyup', (event) => {
                 if (event.keyCode === 13) {
-                    painter.moveCursorToCellBelow(event);
+                    this.moveCursorToCellBelow(event);
                 }
             });
         }

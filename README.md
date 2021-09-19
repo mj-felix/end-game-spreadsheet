@@ -15,7 +15,7 @@ Programming task for the position of [Full Stack Software Engineer at EndGame](h
 
 ## Description
 
-EndGame Spreadsheet is a simple spreadsheet built in pure JavaScript.
+EndGame Spreadsheet is a simple spreadsheet built using pure JavaScript.
 
 ## Scope of Functionalities
 
@@ -28,7 +28,7 @@ EndGame Spreadsheet is a simple spreadsheet built in pure JavaScript.
 
 ## Technologies/Components
 
-Only pure JavaScript used.
+Only pure JavaScript is used.
 
 ## Installation Notes
 
@@ -51,12 +51,12 @@ Open `end-game-spreadsheet/index.html` in your favourite browser.
 5. Rethink formula parsing + handle new formulas:
    - Elicit reqs
    - Trim
-   - Replace SUM(A1:B2) with (A1+B1+A2+B2) before calculating result
+   - Replace SUM(A1:B2) with (A1+B1+A2+B2) before calculating the result
    - ...
 6. Do not allow the user to overwrite JS code (Object.freeze... etc)
 7. Better error handling and user alerting
-8. Use key shortcuts for formatting - `if (event.key === 'b' && (event.metaKey || event.ctrlKey)) { ... }`
-9. Replace cell listeners with one listener higher in the DOM tree and use `event.target` to identify source (performance improvement)
+8. Use key shortcuts for formatting - `if (event.key === 'b' && (event.metaKey || event.ctrlKey)) { }`
+9. Replace cell listeners with one listener higher in the DOM tree and use `event.target` to identify the source (performance improvement)
 10. Handle circular references/cell dependencies
 
 ## Contact

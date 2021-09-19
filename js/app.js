@@ -88,34 +88,7 @@ class Cell {
         marginalCells = marginalCells.substring(0, marginalCells.length - 1);
         marginalCells = marginalCells.split(':');
 
-        const index1 = marginalCells[0].search(/\d/);
-        const column1 = marginalCells[0].slice(0, index1);
-        const row1 = marginalCells[0].slice(index1);
-        const index2 = marginalCells[1].search(/\d/);
-        const column2 = marginalCells[1].slice(0, index2);
-        const row2 = marginalCells[1].slice(index2);
-        let firstRow, lastRow;
-        if (parseInt(row1) < parseInt(row2)) {
-            firstRow = row1;
-            lastRow = row2;
-        } else {
-            firstRow = row2;
-            lastRow = row1;
-        }
-
-        const spreadsheetColumns = spreadsheet.getColumns();
-
-        const column1Index = spreadsheetColumns.findIndex((column) => column === column1);
-        const column2Index = spreadsheetColumns.findIndex((column) => column === column2);
-        let firstColumnIndex, lastColumnIndex;
-        if (column1Index < column2Index) {
-            firstColumnIndex = column1Index;
-            lastColumnIndex = column2Index;
-        } else {
-            firstColumnIndex = column2Index;
-            lastColumnIndex = column1Index;
-        }
-
+        const { firstRow, lastRow, firstColumnIndex, lastColumnIndex, spreadsheetColumns } = spreadsheet.getMarginalCellsForRange(marginalCells);
 
         const newCellIds = [];
         let result = 0;
@@ -126,19 +99,18 @@ class Cell {
                 for (let j = firstRow; j <= lastRow; j++) {
                     const newCellId = spreadsheetColumns[i] + j;
                     let cell = spreadsheet.getCellById(newCellId);
-
                     newCellIds.push(newCellId);
                     result += parseFloat(cell.getValue() || 0);
                     if (!cell.impactedCellIds.filter((impactedCellId) => impactedCellId === this.getId()).length) {
                         cell.addImpactedCell(this.getId());
                     }
-
                 }
             }
 
             this.value = Number.isNaN(result) ? '\'' + this.formula : result;
             this.reliantOnCellIds = newCellIds;
         } catch (e) {
+            console.log(e);
             this.value = '\'' + this.formula;
         }
     }
@@ -226,6 +198,40 @@ class Spreadsheet {
 
     getColumns() {
         return Object.keys(this.data);
+    }
+
+    getMarginalCellsForRange(marginalCells) {
+
+        const index1 = marginalCells[0].search(/\d/);
+        const column1 = marginalCells[0].slice(0, index1);
+        const row1 = marginalCells[0].slice(index1);
+        const index2 = marginalCells[1].search(/\d/);
+        const column2 = marginalCells[1].slice(0, index2);
+        const row2 = marginalCells[1].slice(index2);
+        let firstRow, lastRow;
+        if (parseInt(row1) < parseInt(row2)) {
+            firstRow = row1;
+            lastRow = row2;
+        } else {
+            firstRow = row2;
+            lastRow = row1;
+        }
+
+        const spreadsheetColumns = this.getColumns();
+
+        const column1Index = spreadsheetColumns.findIndex((column) => column === column1);
+        const column2Index = spreadsheetColumns.findIndex((column) => column === column2);
+        let firstColumnIndex, lastColumnIndex;
+        if (column1Index < column2Index) {
+            firstColumnIndex = column1Index;
+            lastColumnIndex = column2Index;
+        } else {
+            firstColumnIndex = column2Index;
+            lastColumnIndex = column1Index;
+        }
+
+        return { firstRow, lastRow, firstColumnIndex, lastColumnIndex, spreadsheetColumns };
+
     }
 
 }

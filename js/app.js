@@ -336,7 +336,6 @@ class Painter {
             });
             cell.addEventListener('focus', (event) => {
                 controller.checkForFormula(event.target.id);
-                painter.setActiveCellId(event.target.id);
             });
             cell.addEventListener('blur', (event) => {
                 controller.saveCell(event.target.id, event.target.value, true);
@@ -436,16 +435,19 @@ class Controller {
 
     saveCell(cellId, value, isBlurEvent) {
         const cell = this.spreadsheet.getCellById(cellId);
+
+        // if formula in the cell
         if (value.startsWith('=')) {
             cell.setFormula(value);
+            // if exited the cell
             if (isBlurEvent) {
                 cell.updateValueFromFormula();
                 painter.updateInput(cellId, cell.getValue() || '\'' + cell.getFormula());
-
             }
-        } else {
+        } else { // if no formula in the cell
             cell.setValue(value);
             cell.setFormula(null);
+            // update all the cells that impact this cell now that this cell doesn't hold formula any more
             for (let reliantOnCellId of cell.reliantOnCellIds) {
                 const cell = spreadsheet.getCellById(reliantOnCellId);
                 cell.impactedCellIds = cell.impactedCellIds.filter((impactedCellId) => impactedCellId !== cellId);
@@ -453,7 +455,7 @@ class Controller {
             cell.reliantOnCellIds = [];
         }
 
-        // update other cells that relies on this cell
+        // update other cells that are impacted by this cell's change
         if (isBlurEvent) {
             this.updateImpactedCells(cell);
         }
@@ -462,6 +464,7 @@ class Controller {
 
     updateImpactedCells(cell) {
         for (let impactedCellId of cell.impactedCellIds) {
+            // removed after introduction of cell.impactedCellIds
             // if (!impactedCell.formula) {
             //     // cell.impactedCells = cell.impactedCells.filter((cell) => cell.getId() !== impactedCell.getId());
             //     continue;
@@ -476,12 +479,13 @@ class Controller {
     }
 
     checkForFormula(cellId) {
+        painter.setActiveCellId(cellId);
+
         const cell = this.spreadsheet.getCellById(cellId);
         const cellFormula = cell.getFormula();
         if (cellFormula) {
             painter.updateInput(cellId, cellFormula);
         }
     }
-
 
 }

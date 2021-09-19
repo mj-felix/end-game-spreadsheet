@@ -25,7 +25,7 @@ class Cell {
         this.type = type;
         this.value = value;
         this.formula = formula;
-        this.impactedCells = [];
+        this.impactedCellIds = [];
         this.reliantOnCellIds = [];
         this.isBold = false;
         this.isItalic = false;
@@ -79,8 +79,8 @@ class Cell {
         return this.isUnderlined;
     }
 
-    addImpactedCell(otherCell) {
-        this.impactedCells.push(otherCell);
+    addImpactedCell(otherCellId) {
+        this.impactedCellIds.push(otherCellId);
     }
 
     updateValueFromSumFormula() {
@@ -129,8 +129,8 @@ class Cell {
 
                     newCellIds.push(newCellId);
                     result += parseFloat(cell.getValue() || 0);
-                    if (!cell.impactedCells.filter((impactedCell) => impactedCell.getId() === this.getId()).length) {
-                        cell.addImpactedCell(this);
+                    if (!cell.impactedCellIds.filter((impactedCellId) => impactedCellId === this.getId()).length) {
+                        cell.addImpactedCell(this.getId());
                     }
 
                 }
@@ -160,8 +160,8 @@ class Cell {
 
             const cellValue = cell.getValue();
             values.push(cellValue);
-            if (!cell.impactedCells.filter((impactedCell) => impactedCell.getId() === this.getId()).length) {
-                cell.addImpactedCell(this);
+            if (!cell.impactedCellIds.filter((impactedCellId) => impactedCellId === this.getId()).length) {
+                cell.addImpactedCell(this.getId());
             }
         }
 
@@ -441,7 +441,7 @@ class Controller {
             cell.setFormula(null);
             for (let reliantOnCellId of cell.reliantOnCellIds) {
                 const cell = spreadsheet.getCellById(reliantOnCellId);
-                cell.impactedCells = cell.impactedCells.filter((cell) => cell.getId() !== cellId);
+                cell.impactedCellIds = cell.impactedCellIds.filter((impactedCellId) => impactedCellId !== cellId);
             }
             cell.reliantOnCellIds = [];
         }
@@ -454,14 +454,15 @@ class Controller {
     }
 
     updateImpactedCells(cell) {
-        for (let impactedCell of cell.impactedCells) {
+        for (let impactedCellId of cell.impactedCellIds) {
             // if (!impactedCell.formula) {
             //     // cell.impactedCells = cell.impactedCells.filter((cell) => cell.getId() !== impactedCell.getId());
             //     continue;
             // }
+            const impactedCell = spreadsheet.getCellById(impactedCellId);
             impactedCell.updateValueFromFormula();
             painter.updateInput(impactedCell.getId(), impactedCell.getValue());
-            if (impactedCell.impactedCells && impactedCell.impactedCells.length) {
+            if (impactedCell.impactedCellIds && impactedCell.impactedCellIds.length) {
                 this.updateImpactedCells(impactedCell);
             }
         }

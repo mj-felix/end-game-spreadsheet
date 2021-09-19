@@ -145,6 +145,7 @@ class Cell {
             this.value = Utils.calculate(operation);
             this.reliantOnCellIds = newCellIds;
         } catch (e) {
+            console.log(e);
             this.value = '\'' + this.formula;
         }
     }
@@ -298,7 +299,7 @@ class Painter {
     paint() {
 
         const data = this.spreadsheet.getData();
-        const keys = Object.keys(data);
+        const keys = this.spreadsheet.getColumns();
         const numOfColumns = keys.length;
         const numOfRows = data['0'].length;
         const html = [];
@@ -359,7 +360,7 @@ class Painter {
         const numOfRows = this.spreadsheet.getData()['0'].length;
         if (row >= numOfRows - 1) {
             row = 1;
-            const keys = Object.keys(this.spreadsheet.getData());
+            const keys = this.spreadsheet.getColumns();
             let nextKey;
             for (let i = 1; i < keys.length; i++) {
                 if (keys[i] === column) {

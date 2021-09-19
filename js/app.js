@@ -238,8 +238,7 @@ class Spreadsheet {
 }
 
 class Painter {
-    constructor(spreadsheet) {
-        this.spreadsheet = spreadsheet;
+    constructor() {
         this.activeCellId = null;
     }
 
@@ -251,19 +250,19 @@ class Painter {
         this.activeCellId = cellId;
     }
 
-    init() {
-        this.paint();
-        this.addRefreshListener();
+    init(spreadsheet) {
+        this.paint(spreadsheet);
+        this.addRefreshListener(spreadsheet);
         this.addBoldListener();
         this.addItalicListener();
         this.addUnderlineListener();
         this.addSetInactiveCellListener();
     }
 
-    addRefreshListener() {
+    addRefreshListener(spreadsheet) {
         document.querySelector('#refreshButton').addEventListener('click', (event) => {
             document.getElementById('spreadsheet').innerHTML = 'Refreshing ...';
-            setTimeout(() => this.paint(), 1000);
+            setTimeout(() => this.paint(spreadsheet), 1000);
         });
     }
 
@@ -309,10 +308,10 @@ class Painter {
         });
     }
 
-    paint() {
+    paint(spreadsheet) {
 
-        const data = this.spreadsheet.getData();
-        const keys = this.spreadsheet.getColumns();
+        const data = spreadsheet.getData();
+        const keys = spreadsheet.getColumns();
         const numOfColumns = keys.length;
         const numOfRows = data['0'].length;
         const html = [];
@@ -337,10 +336,10 @@ class Painter {
 
         document.getElementById('spreadsheet').innerHTML = html.join('');
 
-        this.listen();
+        this.listen(spreadsheet);
     }
 
-    listen() {
+    listen(spreadsheet) {
 
         const cells = document.querySelectorAll('input.cell');
         for (let cell of cells) {
@@ -355,24 +354,24 @@ class Painter {
             });
             cell.addEventListener('keyup', (event) => {
                 if (event.keyCode === 13) {
-                    this.moveCursorToCellBelow(event);
+                    this.moveCursorToCellBelow(event, spreadsheet);
                 }
             });
         }
 
     }
 
-    moveCursorToCellBelow(event) {
+    moveCursorToCellBelow(event, spreadsheet) {
 
         const cellId = event.target.id;
         const index = cellId.search(/\d/);
         let column = cellId.slice(0, index);
         let row = cellId.slice(index);
 
-        const numOfRows = this.spreadsheet.getData()['0'].length;
+        const numOfRows = spreadsheet.getData()['0'].length;
         if (row >= numOfRows - 1) {
             row = 1;
-            const keys = this.spreadsheet.getColumns();
+            const keys = spreadsheet.getColumns();
             let nextKey;
             for (let i = 1; i < keys.length; i++) {
                 if (keys[i] === column) {
@@ -426,6 +425,10 @@ class Painter {
 class Controller {
     constructor(spreadsheet) {
         this.spreadsheet = spreadsheet;
+    }
+
+    getSpreadsheet() {
+        return this.spreadsheet;
     }
 
     toggleBold(cellId) {

@@ -253,20 +253,20 @@ class Painter {
 
     init() {
         this.paint();
-        this.listenToRefreshClickEventAndRepaint();
-        this.listenToBoldClickEventAndUpdate();
-        this.listenToItalicClickEventAndUpdate();
-        this.listenToUnderlineClickEventAndUpdate();
+        this.addRefreshListener();
+        this.addBoldListener();
+        this.addItalicListener();
+        this.addUnderlineListener();
     }
 
-    listenToRefreshClickEventAndRepaint() {
+    addRefreshListener() {
         document.querySelector('#refreshButton').addEventListener('click', (event) => {
             document.getElementById('spreadsheet').innerHTML = 'Refreshing ...';
             setTimeout(() => this.paint(), 1000);
         });
     }
 
-    listenToBoldClickEventAndUpdate() {
+    addBoldListener() {
         document.querySelector('#boldButton').addEventListener('click', (event) => {
             const activeCellId = this.getActiveCellId();
             if (activeCellId) {
@@ -276,7 +276,7 @@ class Painter {
         });
     }
 
-    listenToItalicClickEventAndUpdate() {
+    addItalicListener() {
         document.querySelector('#italicButton').addEventListener('click', (event) => {
             const activeCellId = this.getActiveCellId();
             if (activeCellId) {
@@ -286,7 +286,7 @@ class Painter {
         });
     }
 
-    listenToUnderlineClickEventAndUpdate() {
+    addUnderlineListener() {
         document.querySelector('#underlineButton').addEventListener('click', (event) => {
             const activeCellId = this.getActiveCellId();
             if (activeCellId) {

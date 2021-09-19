@@ -1,20 +1,22 @@
-const chars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+class Utils {
+    static chars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
-const numberToExcelHeader = (index) => {
-    if (index === 0) return '0';
+    static numberToExcelHeader(index) {
+        if (index === 0) return '0';
 
-    index -= 1;
+        index -= 1;
 
-    const quotient = Math.floor(index / 26);
-    if (quotient > 0) {
-        return numberToExcelHeader(quotient) + chars[index % 26];
+        const quotient = Math.floor(index / 26);
+        if (quotient > 0) {
+            return Utils.numberToExcelHeader(quotient) + Utils.chars[index % 26];
+        }
+
+        return Utils.chars[index % 26];
+    };
+
+    static calculate(operation) {
+        return Function(`return (${operation})`)();
     }
-
-    return chars[index % 26];
-};
-
-function calculate(operation) {
-    return Function(`'use strict'; return (${operation})`)();
 }
 
 class Cell {
@@ -85,7 +87,7 @@ class Cell {
         let marginalCells = this.formula.slice(5);
         marginalCells = marginalCells.substring(0, marginalCells.length - 1);
         marginalCells = marginalCells.split(':');
-        console.log(marginalCells);
+
         const index1 = marginalCells[0].search(/\d/);
         const column1 = marginalCells[0].slice(0, index1);
         const row1 = marginalCells[0].slice(index1);
@@ -100,7 +102,7 @@ class Cell {
             firstRow = row2;
             lastRow = row1;
         }
-        console.log(firstRow, lastRow);
+
         const spreadsheetColumns = spreadsheet.getColumns();
 
         const column1Index = spreadsheetColumns.findIndex((column) => column === column1);
@@ -113,7 +115,7 @@ class Cell {
             firstColumnIndex = column2Index;
             lastColumnIndex = column1Index;
         }
-        console.log(firstColumnIndex, lastColumnIndex);
+
 
         const newCellIds = [];
         let result = 0;
@@ -168,7 +170,7 @@ class Cell {
         }
 
         try {
-            this.value = calculate(operation);
+            this.value = Utils.calculate(operation);
             this.reliantOnCellIds = newCellIds;
         } catch (e) {
             this.value = '\'' + this.formula;
@@ -196,7 +198,7 @@ class Spreadsheet {
         this.data['0'] = firstColumn;
 
         for (let i = 1; i <= numOfColumns; i++) {
-            const cellId = numberToExcelHeader(i);
+            const cellId = Utils.numberToExcelHeader(i);
             const column = [];
             column.push(new Cell(cellId + 0, 'label', cellId));
             for (let j = 1; j <= numOfRows; j++) {
@@ -268,7 +270,7 @@ class Painter {
     }
 
     listenToItalicClickEventAndUpdate() {
-        document.querySelector('#italicsButton').addEventListener('click', (event) => {
+        document.querySelector('#italicButton').addEventListener('click', (event) => {
             const activeCellId = this.getActiveCellId();
             if (activeCellId) {
                 controller.toggleItalic(activeCellId);

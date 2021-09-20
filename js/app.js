@@ -1,6 +1,20 @@
+/** Helper class holding utility functions. */
 class Utils {
+    /**
+     * Array holding characters of the alphabet.
+     * 
+     * @static
+     * @type {Array.<string>}
+     */
     static chars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
+    /**
+    *  Converts numeric index to Excel-like column header.
+    * 
+    *  @static
+    *  @param {number} index Numeric column index.
+    *  @returns {string} Column header.
+    */
     static numberToExcelHeader(index) {
         if (index === 0) return '0';
 
@@ -14,6 +28,13 @@ class Utils {
         return Utils.chars[index % 26];
     };
 
+    /**
+    *  Calculates result of the operation.
+    *
+    *  @static
+    *  @param {string} operation Operation string.
+    *  @returns {number} Result of operation.
+    */
     static calculate(operation) {
         return Function(`return (${operation})`)();
     }

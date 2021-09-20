@@ -50,8 +50,10 @@ Open `end-game-spreadsheet/index.html` in your favourite browser.
 4. Divide code into separate files/modules to improve readability
 5. Rethink formula parsing + handle new formulas:
    - Elicit reqs
-   - Trim
+   - Trim, remove white spaces
+   - Prevent code injections
    - Replace SUM(A1:B2) with (A1+B1+A2+B2) before calculating the result
+   - Rethink side effects like updating the source cell's `impactedCellIds` 
    - ...
 6. Do not allow the user to overwrite JS code (Object.freeze... etc)
 7. Better error handling and user alerting
@@ -59,7 +61,7 @@ Open `end-game-spreadsheet/index.html` in your favourite browser.
 9. Replace cell listeners with one listener higher in the DOM tree and use `event.target` to identify the source (performance improvement)
 10. Handle circular references/cell dependencies
 11. Refactor saveCell into 2 separate methods for input and blur events
-12. Fix: update of formula `=A1+B1` to `=B1` -> A1.impactedCellIds still holds A1 (no user impact currently, but might have performance impact)
+12. Fix: update of formula `=A1+B1` to `=B1` -> A1.`impactedCellIds` still holds A1 (no user impact currently, but might have performance impact)
 
 ## Contact
 

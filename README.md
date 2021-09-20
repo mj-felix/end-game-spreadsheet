@@ -58,6 +58,8 @@ Open `end-game-spreadsheet/index.html` in your favourite browser.
 8. Use key shortcuts for formatting - `if (event.key === 'b' && (event.metaKey || event.ctrlKey)) { }`
 9. Replace cell listeners with one listener higher in the DOM tree and use `event.target` to identify the source (performance improvement)
 10. Handle circular references/cell dependencies
+11. Refactor saveCell into 2 separate methods for input and blur events
+12. Fix: update of formula `=A1+B1` to `=B1` -> A1.impactedCellIds still holds A1 (no user impact currently, but might have performance impact)
 
 ## Contact
 

@@ -582,7 +582,7 @@ class Painter {
                 controller.checkForFormula(event.target.id, event);
             });
             cell.addEventListener('blur', (event) => {
-                controller.saveCell(event.target.id, event.target.value, true);
+                controller.updateValueFromFormulaAndCellReferences(event.target.id, event.target.value);
             });
             cell.addEventListener('keyup', (event) => {
                 if (event.keyCode === 13) {
@@ -742,41 +742,48 @@ class Controller {
     }
 
     /**
-    *  Saves the cell's new value or formula and, if cell is defocused with formula entered, calculates the result basing on that formula; updates other cells impacted by the change in this cell.
+    *  Saves the cell's new value or formula.
     *
     *  @param {string} cellId Cell id.
     *  @param {string} value Cell id.
-    *  @param {boolean} isBlurEvent Cell id.
     */
     saveCell(cellId, value, isBlurEvent) {
         const cell = this.spreadsheet.getCellById(cellId);
 
-        if (isBlurEvent) {
-            // update all the cells that impact this cell now that this cell doesn't hold formula any more or formula has changed
-            for (let reliantOnCellId of cell.reliantOnCellIds) {
-                const cell = spreadsheet.getCellById(reliantOnCellId);
-                cell.impactedCellIds = cell.impactedCellIds.filter((impactedCellId) => impactedCellId !== cellId);
-            }
-            cell.reliantOnCellIds = [];
-        }
-
         // if formula in the cell
         if (value.startsWith('=')) {
             cell.setFormula(value);
-            // if exited the cell
-            if (isBlurEvent) {
-                cell.updateValueFromFormula();
-                painter.updateInput(cellId, cell.getValue());
-            }
         } else { // if no formula in the cell
             cell.setValue(value);
             cell.setFormula(null);
         }
 
-        // update other cells that are impacted by this cell's change
-        if (isBlurEvent) {
-            this.updateImpactedCells(cell);
+    }
+
+    /**
+    *  If cell is defocused with formula entered, calculates the result basing on that formula; also updates other cells impacted by the change in this cell.
+    *
+    *  @param {string} cellId Cell id.
+    *  @param {string} value Cell id.
+    */
+    updateValueFromFormulaAndCellReferences(cellId, value) {
+        const cell = this.spreadsheet.getCellById(cellId);
+
+        // update all the cells that impact this cell now that this cell doesn't hold formula any more or formula has changed
+        for (let reliantOnCellId of cell.reliantOnCellIds) {
+            const cell = spreadsheet.getCellById(reliantOnCellId);
+            cell.impactedCellIds = cell.impactedCellIds.filter((impactedCellId) => impactedCellId !== cellId);
         }
+        cell.reliantOnCellIds = [];
+
+        // if formula in the cell
+        if (value.startsWith('=')) {
+            cell.updateValueFromFormula();
+            painter.updateInput(cellId, cell.getValue());
+        }
+
+        // update other cells that are impacted by this cell's change
+        this.updateImpactedCells(cell);
 
     }
 

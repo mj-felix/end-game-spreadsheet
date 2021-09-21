@@ -1,4 +1,4 @@
-const spreadsheet = new Spreadsheet(10, 10);
+const spreadsheet = new Spreadsheet(100, 100);
 
 const controller = new Controller(spreadsheet);
 

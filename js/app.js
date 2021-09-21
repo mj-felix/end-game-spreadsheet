@@ -250,8 +250,7 @@ class Cell {
         let operation = this.formula.slice(1);
         const cellIds = operation.split(/[+\-*/()]/);
 
-        const newCellIds = [];
-        const values = [];
+        const newCells = [];
         for (let cellId of cellIds) {
             let cell;
             try {
@@ -259,22 +258,25 @@ class Cell {
             } catch (e) {
                 continue;
             }
-            newCellIds.push(cellId);
-
             const cellValue = cell.getValue();
-            values.push(cellValue);
+
+            newCells.push([cellId, cellValue]);
+
             if (!cell.impactedCellIds.filter((impactedCellId) => impactedCellId === this.getId()).length) {
                 cell.addImpactedCell(this.getId());
             }
         }
 
-        for (let i = 0; i < newCellIds.length; i++) {
-            operation = operation.replaceAll(newCellIds[i], values[i]);
+        // fix for A1=1, A10=1, B1=A1+A10 => 2 not 11
+        newCells.sort((a, b) => b[0].length - a[0].length);
+
+        for (let i = 0; i < newCells.length; i++) {
+            operation = operation.replaceAll(newCells[i][0], newCells[i][1]);
         }
 
         try {
             this.value = Utils.calculate(operation);
-            this.reliantOnCellIds = newCellIds;
+            this.reliantOnCellIds = newCells.map((newCell) => newCell[0]);
         } catch (e) {
             console.log(e);
             this.value = '\'' + this.formula;

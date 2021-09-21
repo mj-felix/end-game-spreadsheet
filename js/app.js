@@ -750,7 +750,7 @@ class Controller {
             // if exited the cell
             if (isBlurEvent) {
                 cell.updateValueFromFormula();
-                painter.updateInput(cellId, cell.getValue() || '\'' + cell.getFormula());
+                painter.updateInput(cellId, cell.getValue());
             }
         } else { // if no formula in the cell
             cell.setValue(value);

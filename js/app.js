@@ -744,6 +744,15 @@ class Controller {
     saveCell(cellId, value, isBlurEvent) {
         const cell = this.spreadsheet.getCellById(cellId);
 
+        if (isBlurEvent) {
+            // update all the cells that impact this cell now that this cell doesn't hold formula any more or formula has changed
+            for (let reliantOnCellId of cell.reliantOnCellIds) {
+                const cell = spreadsheet.getCellById(reliantOnCellId);
+                cell.impactedCellIds = cell.impactedCellIds.filter((impactedCellId) => impactedCellId !== cellId);
+            }
+            cell.reliantOnCellIds = [];
+        }
+
         // if formula in the cell
         if (value.startsWith('=')) {
             cell.setFormula(value);
@@ -755,12 +764,6 @@ class Controller {
         } else { // if no formula in the cell
             cell.setValue(value);
             cell.setFormula(null);
-            // update all the cells that impact this cell now that this cell doesn't hold formula any more
-            for (let reliantOnCellId of cell.reliantOnCellIds) {
-                const cell = spreadsheet.getCellById(reliantOnCellId);
-                cell.impactedCellIds = cell.impactedCellIds.filter((impactedCellId) => impactedCellId !== cellId);
-            }
-            cell.reliantOnCellIds = [];
         }
 
         // update other cells that are impacted by this cell's change

@@ -53,7 +53,6 @@ Open `end-game-spreadsheet/index.html` in your favourite browser.
    - Trim, remove white spaces
    - Prevent code injections
    - Replace SUM(A1:B2) with (A1+B1+A2+B2) before calculating the result
-   - `getMarginalCellsForRange` to return array of cell ids
    - Rethink side effects like updating the source cell's `impactedCellIds` 
    - ...
 6. Do not allow the user to overwrite JS code (Object.freeze... etc)

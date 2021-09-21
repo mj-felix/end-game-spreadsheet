@@ -216,27 +216,23 @@ class Cell {
         marginalCells = marginalCells.substring(0, marginalCells.length - 1);
         marginalCells = marginalCells.split(':');
 
-        const { firstRow, lastRow, firstColumnIndex, lastColumnIndex, spreadsheetColumns } = spreadsheet.getMarginalCellsForRange(marginalCells);
+        const cellsInRange = spreadsheet.getMarginalCellsForRange(marginalCells);
 
-        const newCellIds = [];
+
         let result = 0;
 
         try {
 
-            for (let i = firstColumnIndex; i <= lastColumnIndex; i++) {
-                for (let j = firstRow; j <= lastRow; j++) {
-                    const newCellId = spreadsheetColumns[i] + j;
-                    let cell = spreadsheet.getCellById(newCellId);
-                    newCellIds.push(newCellId);
-                    result += parseFloat(cell.getValue() || 0);
-                    if (!cell.impactedCellIds.filter((impactedCellId) => impactedCellId === this.getId()).length) {
-                        cell.addImpactedCell(this.getId());
-                    }
+            for (const cellId of cellsInRange) {
+                let cell = spreadsheet.getCellById(cellId);
+                result += parseFloat(cell.getValue() || 0);
+                if (!cell.impactedCellIds.filter((impactedCellId) => impactedCellId === this.getId()).length) {
+                    cell.addImpactedCell(this.getId());
                 }
             }
 
             this.value = Number.isNaN(result) ? '\'' + this.formula : result;
-            this.reliantOnCellIds = newCellIds;
+            this.reliantOnCellIds = cellsInRange;
         } catch (e) {
             console.log(e);
             this.value = '\'' + this.formula;
@@ -372,10 +368,10 @@ class Spreadsheet {
     }
 
     /**
-    *  Returns object consisting of: first row, last row, first column index, last column index (as restricted by provided 2 cell ids) and array of spreadsheet column identifiers.
+    *  Returns arrays of cell id strings (as restricted by provided 2 cell ids).
     *
     *  @param {Array.<string>} marginalCells Array of 2 cell ids.
-    *  @returns {object} Object.
+    *  @returns {Array.<string>} Array of cell ids.
     */
     getMarginalCellsForRange(marginalCells) {
 
@@ -407,7 +403,16 @@ class Spreadsheet {
             lastColumnIndex = column1Index;
         }
 
-        return { firstRow, lastRow, firstColumnIndex, lastColumnIndex, spreadsheetColumns };
+        const cellIdsInRange = [];
+
+        for (let i = firstColumnIndex; i <= lastColumnIndex; i++) {
+            for (let j = firstRow; j <= lastRow; j++) {
+                const newCellId = spreadsheetColumns[i] + j;
+                cellIdsInRange.push(newCellId);
+            }
+        }
+
+        return cellIdsInRange;
 
     }
 

@@ -265,6 +265,11 @@ class Cell {
 
         // fix for A1=1, A10=1, B1=A1+A10 => 2 not 11
         newCells.sort((a, b) => b[0].length - a[0].length);
+        // alternative solution with regex lookahead - replace next for loop with this:
+        // for (let i = 0; i < newCells.length; i++) {
+        //     const cellRegex = new RegExp(`${newCells[i][0]}(?![0-9])`, 'g');
+        //     operation = operation.replace(cellRegex, newCells[i][1]);
+        // }
 
         for (let i = 0; i < newCells.length; i++) {
             operation = operation.replaceAll(newCells[i][0], newCells[i][1]);
